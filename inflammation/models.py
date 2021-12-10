@@ -67,6 +67,143 @@ def patient_normalise(data):
     normalised[np.isnan(normalised)] = 0
     return normalised
 
+
+def attach_names(data,names):
+    """
+    Attach names to patient data
+
+
+    :param data: 2d array of inflammation data
+    :param names: list of names
+    :returns: a dictionary
+
+    """
+    assert len(data) == len(names)
+    output = []
+
+    for data_row, name in zip(data, names):
+        output.append({'name': name,
+                       'data': data_row})
+
+    return output
+
 # TODO(lesson-design) Add Patient class
+
+class Observation:
+    def __init__(self, day, value):
+        self.day = day
+        self.value = value
+
+    def __str__(self):
+        return self.value
+
+class Person:
+    def __init__(self, name):
+        self.name = name
+
+    def __str__(self):
+        return self.name
+
+class Patient(Person):
+    """A patient in an inflammation study."""
+    def __init__(self, name, observations=None):
+        super().__init__(name)
+
+        self.observations = []
+        if observations is not None:
+            self.observations = observations
+
+    def add_observation(self, value, day=None):
+        if day is None:
+            try:
+                day = self.observations[-1].day + 1
+
+            except IndexError:
+                day = 0
+
+        new_observation = Observation(value, day)
+
+        self.observations.append(new_observation)
+        return new_observation
+
+class Doctor(Person):
+    """A Doctor in an inflammation study."""
+
+    def __init__(self, name):
+        super().__init__(name)
+        self.patients = []
+
+    def add_patient(self, patient):
+        self.patients.append(patient)
+
+    @property
+    def list_patients(self):
+        return self.patients
+
+
+class Book:
+    def __init__(self, title, author):
+        self.title = title
+        self.author = author
+
+    def __str__(self):
+        return self.title + ' by ' + self.author
+
+    def __eq__(self, other):
+        return self.title == other.title and self.author == other.author
+
+
+class Library:
+    def __init__(self):
+        self.books = []
+
+    def add_book(self, title, author):
+        self.books.append(Book(title, author))
+
+    def __len__(self):
+        return len(self.books)
+
+    def __getitem__(self, key):
+        return self.books[key]
+
+    def by_author(self, author):
+        matches = []
+        for book in self.books:
+            if book.author == author:
+                matches.append(book)
+
+        if not matches:
+            raise KeyError('Author does not exist')
+
+        return matches
+
+    @property
+    def titles(self):
+        titles = []
+        for book in self.books:
+            titles.append(book.title)
+
+        return titles
+
+    @property
+    def authors(self):
+        authors = []
+        for book in self.books:
+            if book.author not in authors:
+                authors.append(book.author)
+
+        return authors
+
+    def union(self, other):
+        books = []
+        for book in self.books:
+            if book not in books:
+                books.append(book)
+
+        for book in other.books:
+            if book not in books:
+                books.append(book)
+
+        return Library(books)
 # TODO(lesson-design) Implement data persistence
 # TODO(lesson-design) Add Doctor class
